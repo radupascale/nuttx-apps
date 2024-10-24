@@ -1,0 +1,30 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+config EXAMPLES_LVGLHELLO
+	tristate "LVGL Hello"
+	default n
+    depends on GRAPHICS_LVGL
+	---help---
+		Enable sample program that prints hello using LVGL
+
+if EXAMPLES_LVGLHELLO
+
+config EXAMPLES_LVGLHELLO_PROGNAME
+	string "Program name"
+	default "lvglhello"
+	---help---
+		This is the name of the program that will be used when the NSH ELF
+		program is installed.
+
+config EXAMPLES_LVGLHELLO_PRIORITY
+	int "lvglhello task priority"
+	default 100
+
+config EXAMPLES_LVGLHELLO_STACKSIZE
+	int "lvglhello stack size"
+	default 16384
+
+endif

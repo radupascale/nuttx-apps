@@ -1,5 +1,5 @@
 # ##############################################################################
-# apps/examples/lvglhello/CMakeLists.txt
+# apps/examples/lab04si/CMakeLists.txt
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more contributor
 # license agreements.  See the NOTICE file distributed with this work for
@@ -18,18 +18,18 @@
 #
 # ##############################################################################
 
-if(CONFIG_EXAMPLES_LVGLHELLO)
+if(CONFIG_EXAMPLES_LAB04SI)
     nuttx_add_application(
         NAME
-        lvglhello
+        lab04si
         PRIORITY
-        ${CONFIG_EXAMPLES_LVGLHELLO_PRIORITY}
+        ${CONFIG_EXAMPLES_LAB04SI_PRIORITY}
         STACKSIZE
-        ${CONFIG_EXAMPLES_LVGLHELLO_STACKSIZE}
+        ${CONFIG_EXAMPLES_LAB04SI_STACKSIZE}
         MODULE
-        ${CONFIG_EXAMPLES_LVGLHELLO}
+        ${CONFIG_EXAMPLES_LAB04SI}
         DEPENDS
         lvgl
         SRCS
-        lvglhello.c)
+        lab04si.c)
 endif()

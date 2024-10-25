@@ -3,28 +3,28 @@
 # see the file kconfig-language.txt in the NuttX tools repository.
 #
 
-config EXAMPLES_LVGLHELLO
-	tristate "LVGL Hello"
+config EXAMPLES_LAB04SI
+	tristate "Lab04 SI"
 	default n
     depends on GRAPHICS_LVGL
 	---help---
-		Enable sample program that prints hello using LVGL
+		Lab04 skel for Embedded Systems
 
-if EXAMPLES_LVGLHELLO
+if EXAMPLES_LAB04SI
 
-config EXAMPLES_LVGLHELLO_PROGNAME
+config EXAMPLES_LAB04SI_PROGNAME
 	string "Program name"
-	default "lvglhello"
+	default "lab04si"
 	---help---
 		This is the name of the program that will be used when the NSH ELF
 		program is installed.
 
-config EXAMPLES_LVGLHELLO_PRIORITY
-	int "lvglhello task priority"
+config EXAMPLES_LAB04SI_PRIORITY
+	int "lab04si task priority"
 	default 100
 
-config EXAMPLES_LVGLHELLO_STACKSIZE
-	int "lvglhello stack size"
+config EXAMPLES_LAB04SI_STACKSIZE
+	int "lab04si stack size"
 	default 16384
 
 endif

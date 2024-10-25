@@ -1,5 +1,5 @@
 ############################################################################
-# apps/examples/lvglhello/Make.defs
+# apps/examples/lab04si/Makefile
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -18,6 +18,17 @@
 #
 ############################################################################
 
-ifneq ($(CONFIG_EXAMPLES_LVGLHELLO),)
-CONFIGURED_APPS += $(APPDIR)/examples/lvglhello
-endif
+include $(APPDIR)/Make.defs
+
+# Hello, World! built-in application info
+
+PROGNAME  = $(CONFIG_EXAMPLES_LAB04SI_PROGNAME)
+PRIORITY  = $(CONFIG_EXAMPLES_LAB04SI_PRIORITY)
+STACKSIZE = $(CONFIG_EXAMPLES_LAB04SI_STACKSIZE)
+MODULE    = $(CONFIG_EXAMPLES_LAB04SI)
+
+# Hello, World! Example
+
+MAINSRC = lab04si.c
+
+include $(APPDIR)/Application.mk

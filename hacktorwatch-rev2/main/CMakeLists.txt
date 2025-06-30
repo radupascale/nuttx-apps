@@ -31,7 +31,7 @@ if(CONFIG_HACKTORWATCH_REV2)
     MODULE
     ${CONFIG_HACKTORWATCH_REV2}
     SRCS
-    hacktorwatch.c
+    hacktorwatch_main.c
     haptic.c
     imu.c
     display.c

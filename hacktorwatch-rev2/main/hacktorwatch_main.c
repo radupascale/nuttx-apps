@@ -69,7 +69,7 @@ static int lvgl_handler(int argc, char *argv[])
  *
  ****************************************************************************/
 
-int main(int argc, FAR char *argv[])
+int hacktorwatch_main(int argc, FAR char *argv[])
 {
   int ret;
 #ifdef CONFIG_GRAPHICS_LVGL

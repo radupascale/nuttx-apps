@@ -27,7 +27,7 @@ PRIORITY = $(CONFIG_HACKTORWATCH_REV2_PRIORITY)
 STACKSIZE = $(CONFIG_HACKTORWATCH_REV2_STACKSIZE)
 MODULE = $(CONFIG_HACKTORWATCH_REV2)
 
-MAINSRC = hacktorwatch.c display.c imu.c
+MAINSRC = hacktorwatch_main.c display.c imu.c
 
 ifneq ($(CONFIG_FF_DRV2605L),)
 MAINSRC += haptic.c

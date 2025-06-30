@@ -21,4 +21,4 @@
 # ##############################################################################
 
 nuttx_add_subdirectory()
-nuttx_generate_kconfig(MENUDESC "HacktorWatch-rev2")
+nuttx_generate_kconfig(MENUDESC "HacktorWatch")

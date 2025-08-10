@@ -161,6 +161,10 @@ static int gap_event_cb(FAR struct ble_gap_event *event, FAR void *arg)
             {
               start_advertise();
             }
+          else
+            {
+              ble_svc_ans_on_gap_connect(event->connect.conn_handle);
+            }
           break;
         }
 

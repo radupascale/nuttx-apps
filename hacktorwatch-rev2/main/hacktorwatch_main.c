@@ -1,124 +1,126 @@
-/****************************************************************************
- * apps/examples/lab04si/lab04si.c
- *
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.  The
- * ASF licenses this file to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance with the
- * License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations
- * under the License.
- *
- ****************************************************************************/
-
-/****************************************************************************
- * Included Files
- ****************************************************************************/
-
-#include <nuttx/config.h>
-#include <sys/ioctl.h>
+#include <unistd.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <errno.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/boardctl.h>
 
-#ifdef CONFIG_GRAPHICS_LVGL
-#include <lvgl/lvgl.h>
-#endif
-/****************************************************************************
- * Private Functions
- ****************************************************************************/
+#include "lvgl/lvgl.h"
+#include "lvgl/demos/lv_demos.h"
 
-#ifdef CONFIG_GRAPHICS_LVGL
-static int lvgl_handler(int argc, char *argv[])
+lv_obj_t * circle;
+lv_obj_t * clock_label;
+lv_obj_t * label_steps;
+int total_steps = 0;
+time_t now;
+
+static void cb_night_mode_event_handler(lv_event_t * e)
 {
-  while (1) {
-    lv_timer_handler();
-    usleep(20000);
-  }
+    lv_event_code_t code = lv_event_get_code(e);
+    lv_obj_t * obj = lv_event_get_target_obj(e);
+    if (code == LV_EVENT_VALUE_CHANGED) {
+        LV_UNUSED(obj);
 
-  return EXIT_FAILURE;
+        if (lv_obj_get_state(obj) & LV_STATE_CHECKED) {
+            lv_color_t color = {.red = 128, .green = 128, .blue = 128};
+
+            lv_obj_set_style_bg_color(circle, color, 0);
+        } else {
+            lv_obj_set_style_bg_color(circle, lv_color_white(), 0);
+        }
+    }
 }
-#endif
 
-/****************************************************************************
- * Public Functions
- ****************************************************************************/
-
-/****************************************************************************
- * Name: main
- *
- * Description:
- *
- * Input Parameters:
- *   Standard argc and argv
- *
- * Returned Value:
- *   Zero on success; a positive, non-zero value on failure.
- *
- ****************************************************************************/
-
-int hacktorwatch_main(int argc, FAR char *argv[])
+static void update_clock(lv_timer_t *timer)
 {
-  int ret;
-#ifdef CONFIG_GRAPHICS_LVGL
-  lv_nuttx_dsc_t info;
-  lv_nuttx_result_t result;
-#endif
+    struct tm *tm_info;
+    char buf[16];
 
-#ifdef CONFIG_GRAPHICS_LVGL
-  lv_init();
-  lv_nuttx_dsc_init(&info);
+    now += 1; /* Plus one second */
+    tm_info = gmtime(&now);
 
-#ifdef CONFIG_LV_USE_NUTTX_LCD
-  info.fb_path = "/dev/lcd0";
-#endif
+    strftime(buf, sizeof(buf), "%H:%M:%S", tm_info);
+    lv_label_set_text(clock_label, buf);
+    lv_obj_invalidate(clock_label);
+}
 
-  lv_nuttx_init(&info, &result);
+static void update_steps(lv_timer_t *timer)
+{
+    total_steps++;
+    lv_label_set_text_fmt(label_steps, "Steps: %i", total_steps);
+}
 
-  if (result.disp == NULL) {
-    LV_LOG_ERROR("lv_demos initialization failure!");
-    return 1;
-  }
-#endif
+static void hacktorwatch_init_watch_face(void)
+{
+    lv_obj_t * cb_night_mode; /* Checkbox to enable night mode */
+    lv_obj_t * steps_row; /* Put the steps label and the checkbox in the same row */
 
-#ifdef CONFIG_GRAPHICS_LVGL
-  lv_obj_t *screen = lv_obj_create(NULL);
-  lv_scr_load(screen);
-  lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0x003a57), LV_PART_MAIN);
+    /* The main object which will be the parent of all the following objects */
+    circle = lv_obj_create(lv_screen_active());
 
-  /* Create a white label, set its text and align it to the center */
+    lv_obj_set_style_radius(circle, LV_RADIUS_CIRCLE, 0); 
+    /* The size of the watch display is 240 x 240 */
+    lv_obj_set_size(circle, 240, 240);
+    lv_obj_align(circle, LV_ALIGN_CENTER, 0, 0);
 
-  lv_obj_t *label = lv_label_create(lv_screen_active());
-  lv_label_set_text(label, "Hello!");
-  lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0xffffff), LV_PART_MAIN);
-  lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
-#endif
+    /* A label to show the current time */
+    clock_label = lv_label_create(circle);
+    lv_obj_align(clock_label, LV_ALIGN_TOP_MID, 0, 10);
+    lv_label_set_text(clock_label, "--:--:--");
 
-#ifdef CONFIG_GRAPHICS_LVGL
-  ret = task_create("lvgl_handler", 110, 4096, lvgl_handler,
-                    NULL);
-#endif /* CONFIG_GRAPHICS_LVGL */
+    /* A checkbox that enables/disables the night mode */
+    cb_night_mode = lv_checkbox_create(circle);
+    lv_checkbox_set_text(cb_night_mode, "Night mode");
+    lv_obj_add_state(cb_night_mode, 0);
+    lv_obj_align(cb_night_mode, LV_ALIGN_LEFT_MID, 0, -30);
 
-  while (1) {
-    usleep(100000);
-  }
+    /*
+     * A row which contains two elements: the refresh button and the
+     * text which displays the number of steps.
+     */
+    steps_row = lv_obj_create(circle);
+    lv_obj_set_flex_flow(steps_row, LV_FLEX_FLOW_ROW);
+    lv_obj_set_size(steps_row, lv_pct(90), lv_pct(30));
+    lv_obj_align(steps_row, LV_ALIGN_BOTTOM_MID, 0, -30);
 
-#ifdef CONFIG_GRAPHICS_LVGL
-  lv_disp_remove(result.disp);
-  lv_deinit();
-#endif
+    lv_obj_t * btn_reset_steps = lv_button_create(steps_row);
+    lv_obj_set_style_bg_image_src(btn_reset_steps, LV_SYMBOL_REFRESH, 0);
+    lv_obj_align(btn_reset_steps, LV_ALIGN_BOTTOM_MID, 0, 0);
 
-  return 0;
+    label_steps = lv_label_create(steps_row);
+    lv_label_set_text_fmt(label_steps, "Steps: %i", total_steps);
+    lv_obj_align(label_steps, LV_ALIGN_CENTER, 0, 0);
+
+    lv_obj_update_layout(circle);
+}
+
+int main()
+{
+    lv_nuttx_dsc_t info;
+    lv_nuttx_result_t result;
+
+    /* Initialize LVGL. */
+    lv_init();
+    lv_nuttx_dsc_init(&info);
+
+    info.fb_path = "/dev/lcd0";
+    info.input_path = "/dev/input0";
+    lv_nuttx_init(&info, &result);
+
+    if (result.disp == NULL) {
+	    LV_LOG_ERROR("LVGL initialization failure!");
+	    return 1;
+    }
+
+    /* Get the current time */
+    now = time(NULL);
+
+    hacktorwatch_init_watch_face();
+
+    while (1)
+    {
+	    lv_timer_handler();
+	    usleep(1000);
+    }
+
+    return 0;
 }
